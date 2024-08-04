@@ -3,12 +3,12 @@ from neo4j import graph
 from src.graph_query import *
 
 CHUNK_QUERY = """
-match (chunk:Chunk) where chunk.id IN $chunksIds
+match (chunk:__Chunk__) where chunk.id IN $chunksIds
 
-MATCH (chunk)-[:PART_OF]->(d:Document)
+MATCH (chunk)-[:__PART_OF__]->(d:__Document__)
 CALL {WITH chunk
-MATCH (chunk)-[:HAS_ENTITY]->(e) 
-MATCH path=(e)(()-[rels:!HAS_ENTITY&!PART_OF]-()){0,2}(:!Chunk&!Document) 
+MATCH (chunk)-[:__HAS_ENTITY__]->(e) 
+MATCH path=(e)(()-[rels:!__HAS_ENTITY__&!__PART_OF__]-()){0,2}(:!__Chunk__&!__Document__) 
 UNWIND rels as r
 RETURN collect(distinct r) as rels
 }
@@ -79,7 +79,7 @@ def process_chunk_data(chunk_data):
             for chunk in record["chunks"]:
                 chunk.update(doc_properties)
                 if chunk["fileSource"] == "youtube":
-                    chunk["start_time"] = time_to_seconds(chunk["start_time"])
+                    chunk["start_time"] = min(time_to_seconds(chunk["start_time"]),time_to_seconds(chunk["end_time"]))
                     chunk["end_time"] = time_to_seconds(chunk["end_time"])
                 chunk_properties.append(chunk)
 

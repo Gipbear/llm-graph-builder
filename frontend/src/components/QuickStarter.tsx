@@ -25,12 +25,7 @@ const QuickStarter: React.FunctionComponent = () => {
   const closeSettingModal = () => {
     setshowSettingsModal(false);
   };
-  const openOrphanNodeDeletionModal = () => {
-    setshowOrphanNodeDeletionDialog(true);
-  };
-  const closeOrphanNodeDeletionModal = () => {
-    setshowOrphanNodeDeletionDialog(false);
-  };
+
   return (
     <UserCredentialsWrapper>
       <FileContextProvider>

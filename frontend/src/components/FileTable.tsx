@@ -58,6 +58,7 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statusFilter, setstatusFilter] = useState<string>('');
   const [filetypeFilter, setFiletypeFilter] = useState<string>('');
+  const [fileSourceFilter, setFileSourceFilter] = useState<string>('');
   const [llmtypeFilter, setLLmtypeFilter] = useState<string>('');
   const skipPageResetRef = useRef<boolean>(false);
   const [alertDetails, setalertDetails] = useState<alertStateType>({
@@ -326,21 +327,63 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
                 <span>
                   <TextLink externalLink href={info.row.original.source_url}>
                     {info.row.original.fileSource}
-                  </TextLink>{' '}
-                  /
+                  </TextLink>
                 </span>
-                <Typography variant='body-medium'>{info.row.original.type}</Typography>
               </Flex>
             );
           }
           return (
             <div>
-              <span>{info.row.original.fileSource} / </span>
+              <span>{info.row.original.fileSource}</span>
+            </div>
+          );
+        },
+        header: () => <span>Source</span>,
+        footer: (info) => info.column.id,
+        filterFn: 'fileSourceFilter' as any,
+        meta: {
+          columnActions: {
+            actions: [
+              {
+                title: (
+                  <span className={`${fileSourceFilter === 'All' ? 'n-bg-palette-primary-bg-selected' : ''} p-2`}>
+                    All Sources
+                  </span>
+                ),
+                onClick: () => {
+                  setFileSourceFilter('All');
+                  table.getColumn('source')?.setFilterValue(true);
+                },
+              },
+              ...Array.from(new Set(filesData.map((f) => f.fileSource))).map((t) => {
+                return {
+                  title: (
+                    <span className={`${t === fileSourceFilter ? 'n-bg-palette-primary-bg-selected' : ''} p-2`}>
+                      {t}
+                    </span>
+                  ),
+                  onClick: () => {
+                    setFileSourceFilter(t as string);
+                    table.getColumn('source')?.setFilterValue(true);
+                    skipPageResetRef.current = true;
+                  },
+                };
+              }),
+            ],
+            defaultSortingActions: false,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: 'type',
+        cell: (info) => {
+          return (
+            <div>
               <span>{info.row.original.type}</span>
             </div>
           );
         },
-        header: () => <span>Source/Type</span>,
+        header: () => <span>Type</span>,
         footer: (info) => info.column.id,
         filterFn: 'fileTypeFilter' as any,
         meta: {
@@ -349,12 +392,12 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
               {
                 title: (
                   <span className={`${filetypeFilter === 'All' ? 'n-bg-palette-primary-bg-selected' : ''} p-2`}>
-                    All types
+                    All Types
                   </span>
                 ),
                 onClick: () => {
                   setFiletypeFilter('All');
-                  table.getColumn('source')?.setFilterValue(true);
+                  table.getColumn('type')?.setFilterValue(true);
                 },
               },
               ...Array.from(new Set(filesData.map((f) => f.type))).map((t) => {
@@ -364,7 +407,7 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
                   ),
                   onClick: () => {
                     setFiletypeFilter(t as string);
-                    table.getColumn('source')?.setFilterValue(true);
+                    table.getColumn('type')?.setFilterValue(true);
                     skipPageResetRef.current = true;
                   },
                 };
@@ -457,7 +500,7 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
         footer: (info) => info.column.id,
       }),
     ],
-    [filesData.length, statusFilter, filetypeFilter, llmtypeFilter]
+    [filesData.length, statusFilter, filetypeFilter, llmtypeFilter, fileSourceFilter]
   );
 
   const table = useReactTable({
@@ -485,6 +528,12 @@ const FileTable = forwardRef<ChildRef, FileTableProps>((props, ref) => {
           return true;
         }
         return row.original.type === filetypeFilter;
+      },
+      fileSourceFilter: (row) => {
+        if (fileSourceFilter === 'All') {
+          return true;
+        }
+        return row.original.fileSource === fileSourceFilter;
       },
       llmTypeFilter: (row) => {
         if (llmtypeFilter === 'All') {
